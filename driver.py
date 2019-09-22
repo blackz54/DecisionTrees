@@ -6,4 +6,6 @@ Y = np.array([[1], [1], [0]])
 max_depth = 2
 
 DT = dt.DT_train_binary(X, Y, max_depth)
-
+test_acc = dt.DT_test_binary(X,Y,DT)
+print(DT.right.left.result)
+print(test_acc)

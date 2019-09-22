@@ -9,24 +9,33 @@ import math
 
 
 def DT_train_binary(X, Y, max_depth):
+    root = Tree()
     X = np.transpose(X)
     guess = most_frequent(Y)
     if isUnambiguous(Y):
-        return leaf(guess)
+        root.result = guess
+        return root
+
     elif len(X) == 0:
-        return leaf(guess)
+        root.result = guess
+        return root
+
     elif max_depth == 0:
-        return leaf(guess)
+        root.result = guess
+        return root
+
     else:
         info_vals = [computeInfoGain(X[i], Y) for i in range(0, len(X))]
         best_gain_index = np.argmax(info_vals)
         # split on best gain index - remove the feature from the feature set
         # adjust the label set accordingly
         data, no, yes = trim_data_sets(best_gain_index, X, Y)
-        left = DT_train_binary(data, no, max_depth-1)
-        right = DT_train_binary(data, yes, max_depth-1)
+        root.left = DT_train_binary(data, no, max_depth-1)
+        root.right = DT_train_binary(data, yes, max_depth-1)
+        root.feature = best_gain_index
+        print(root.feature)
         print("no errors")
-        return
+        return root
 
 
 def trim_data_sets(best_gain, feature_set, labelData):
@@ -73,8 +82,12 @@ def most_frequent(Y):
         return 1
     no = 0
     yes = 0
+    # print("Y: " + "\n")
+    # print(Y)
+    # print("\n")
     for i in Y:
-        if i == 1:
+        print(i)
+        if i == [1]:
             yes += 1
         else:
             no += 1
@@ -109,37 +122,19 @@ def DT_test_binary(X,Y,DT):
     total_correct = 0
 
     for i in range(0, total_tested):
-        result = DT.traverse(X[i])
+        # print("start traversal")
+        result = traverse(DT,X[i])
+        # print("end traversal")
+        print("result: " + str(result) + "\n" + "Label: " + str(Y[i]))
         if result == Y[i]:
             total_correct = total_correct + 1
 
     accuracy = total_correct/total_tested
-    print(accuracy)
+    print("total correct: " + str(total_correct))
+    print("total tested: " + str(total_tested))
     return accuracy
 
 
-# The model object will store the tree made during training
-# The traverse function will traverse the tree given a sample and output the expected label
-class Model(object):
-    def __init__(self, tree):
-        self.tree = tree
-
-    def traverse(self,X):
-
-        if X[self.tree.result] is not -1:
-            return self.tree.result
-
-        elif X[self.tree.feature] is 0:
-            return self.traverse(self.tree.left(), X)
-
-        else:
-            return self.traverse(self.tree.right(),X)
-
-    def print(self):
-        left = None
-        right = None
-        # for i in range(0, self.tree.height()):
-        #     print("height = " + str(i), "Feature split =f"+ str(i), )
 
 
 
@@ -164,6 +159,12 @@ class Tree(object):
     def right(self):
         return self.right
 
+    def setleft(self,node):
+        self.left = node
+
+    def setright(self,node):
+        self.right = node
+
     def height(self):
         left_height = 0
         right_height = 0
@@ -173,5 +174,22 @@ class Tree(object):
         if self.right != None:
             right_height = self.height(self.right)
         return max(left_height + 1 ,right_height + 1)
+
+
+def traverse(node,X):
+        # print("Feature-split: " + str(node.feature))
+        # print("Result: " + str(node.result))
+
+        if node.result != -1:
+            return node.result
+
+        elif X[node.feature] is 0:
+            return traverse(node.left, X)
+
+        else:
+            return traverse(node.right,X)
+
+
+
 
 
