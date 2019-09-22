@@ -15,11 +15,29 @@ def DT_train_binary(X, Y, max_depth):
         return leaf(guess)
     elif len(X) == 0:
         return leaf(guess)
+    elif max_depth == 0:
+        return leaf(guess)
     else:
-        info_vals, no, yes = zip(*[computeInfoGain(X[i], Y) for i in range(0, len(X))])
-        print(info_vals)
-        print(no)
-        print(yes)
+        info_vals = [computeInfoGain(X[i], Y) for i in range(0, len(X))]
+        best_gain_index = np.argmax(info_vals)
+        # split on best gain index - remove the feature from the feature set
+        # adjust the label set accordingly
+        data, no, yes = trim_data_sets(best_gain_index, X, Y)
+        left = DT_train_binary(data, no, max_depth-1)
+        right = DT_train_binary(data, yes, max_depth-1)
+        print("no errors")
+        return
+
+
+def trim_data_sets(best_gain, feature_set, labelData):
+    no = []
+    yes = []
+    selector = [x for x in range(len(feature_set)) if x != best_gain]
+    data = feature_set[selector, :]
+    split_feature = feature_set[best_gain]
+    no = [list(labelData[i]) for i in range(0, len(split_feature)) if split_feature[i] == 0]
+    yes = [list(labelData[i]) for i in range(0, len(split_feature)) if split_feature[i] == 1]
+    return data, no, yes
 
 # Calculate the entropy of the dataset
 # Found documentation for the unique function on Stack Overflow link below:
@@ -37,7 +55,7 @@ def computeInfoGain(X, Y):
     total_entropy = entropy(Y)
     uniqueX, countsX = np.unique(X, return_counts=True)
     node_entropy = [(-countsX[i]/np.sum(countsX))*np.log2(countsX[i]/np.sum(countsX)) for i in range(0, len(countsX))]
-    labelData = Y.flatten()
+    labelData = np.array(Y).flatten()
     no = [labelData[i] for i in range(0, len(X)) if X[i] == 0]
     yes = [labelData[i] for i in range(0, len(X)) if X[i] == 1]
     if len(no) == 0:
@@ -46,15 +64,17 @@ def computeInfoGain(X, Y):
         infoGain = total_entropy - (len(no)/np.sum(countsX))*node_entropy[0]
     else:
         infoGain = total_entropy - (len(no)/np.sum(countsX))*node_entropy[0] - (len(yes)/np.sum(countsX))*node_entropy[1]
-    return infoGain, no, yes
+    return infoGain
 
 # This function finds and the most frequent binary value in the dataset passed to it
 # @params Y is label data
 def most_frequent(Y):
+    if len(Y) == 0:
+        return 1
     no = 0
     yes = 0
     for i in Y:
-        if i > 0:
+        if i == 1:
             yes += 1
         else:
             no += 1
@@ -73,6 +93,8 @@ def leaf(guess):
 # This function will test ambiguity of the data passed to it
 # Y is label data
 def isUnambiguous(Y):
+    if len(Y) == 0:
+        return True
     ele = Y[0]
     for element in Y:
         if element != ele:
