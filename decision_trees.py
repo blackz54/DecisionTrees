@@ -2,42 +2,31 @@ import numpy as np
 import math
 
 
-# @params X is test data
+
+
+# @params X is feature data
 # @params Y is label data
 # @params max_depth is an integer
 # @return
 
 
 def DT_train_binary(X, Y, max_depth):
+    feature_data = X
+    label_data = Y
     X = np.transpose(X)
     guess = most_frequent(Y)
+    # Case 1: All labels are the same
     if isUnambiguous(Y):
         return leaf(guess)
+    # Case 2: No remaining features
     elif len(X) == 0:
         return leaf(guess)
-    elif max_depth == 0:
-        return leaf(guess)
+    # Case 3: Remaining features, determine which to split on
     else:
-        info_vals = [computeInfoGain(X[i], Y) for i in range(0, len(X))]
-        best_gain_index = np.argmax(info_vals)
-        # split on best gain index - remove the feature from the feature set
-        # adjust the label set accordingly
-        data, no, yes = trim_data_sets(best_gain_index, X, Y)
-        left = DT_train_binary(data, no, max_depth-1)
-        right = DT_train_binary(data, yes, max_depth-1)
-        print("no errors")
-        return
-
-
-def trim_data_sets(best_gain, feature_set, labelData):
-    no = []
-    yes = []
-    selector = [x for x in range(len(feature_set)) if x != best_gain]
-    data = feature_set[selector, :]
-    split_feature = feature_set[best_gain]
-    no = [list(labelData[i]) for i in range(0, len(split_feature)) if split_feature[i] == 0]
-    yes = [list(labelData[i]) for i in range(0, len(split_feature)) if split_feature[i] == 1]
-    return data, no, yes
+        info_vals, no, yes = zip(*[computeInfoGain(X[i], Y) for i in range(0, len(X))])
+        print(info_vals)
+        print(no)
+        print(yes)
 
 # Calculate the entropy of the dataset
 # Found documentation for the unique function on Stack Overflow link below:
@@ -55,7 +44,7 @@ def computeInfoGain(X, Y):
     total_entropy = entropy(Y)
     uniqueX, countsX = np.unique(X, return_counts=True)
     node_entropy = [(-countsX[i]/np.sum(countsX))*np.log2(countsX[i]/np.sum(countsX)) for i in range(0, len(countsX))]
-    labelData = np.array(Y).flatten()
+    labelData = Y.flatten()
     no = [labelData[i] for i in range(0, len(X)) if X[i] == 0]
     yes = [labelData[i] for i in range(0, len(X)) if X[i] == 1]
     if len(no) == 0:
@@ -64,17 +53,15 @@ def computeInfoGain(X, Y):
         infoGain = total_entropy - (len(no)/np.sum(countsX))*node_entropy[0]
     else:
         infoGain = total_entropy - (len(no)/np.sum(countsX))*node_entropy[0] - (len(yes)/np.sum(countsX))*node_entropy[1]
-    return infoGain
+    return infoGain, no, yes
 
 # This function finds and the most frequent binary value in the dataset passed to it
 # @params Y is label data
 def most_frequent(Y):
-    if len(Y) == 0:
-        return 1
     no = 0
     yes = 0
     for i in Y:
-        if i == 1:
+        if i > 0:
             yes += 1
         else:
             no += 1
@@ -93,10 +80,83 @@ def leaf(guess):
 # This function will test ambiguity of the data passed to it
 # Y is label data
 def isUnambiguous(Y):
-    if len(Y) == 0:
-        return True
     ele = Y[0]
     for element in Y:
         if element != ele:
             return False
     return True
+
+
+# Sends each sample through the model and counts how many it gets correct
+# It then divides by the total amount tested to acheive the accuracy
+def DT_test_binary(X,Y,DT):
+    total_tested = np.size(Y)
+    total_correct = 0
+
+    for i in range(0, total_tested):
+        result = DT.traverse(X[i])
+        if result == Y[i]:
+            total_correct = total_correct + 1
+
+    accuracy = total_correct/total_tested
+    print(accuracy)
+    return accuracy
+
+
+# The model object will store the tree made during training
+# The traverse function will traverse the tree given a sample and output the expected label
+class Model(object):
+    def __init__(self, tree):
+        self.tree = tree
+
+    def traverse(self,X):
+
+        if X[self.tree.result] is not -1:
+            return self.tree.result
+
+        elif X[self.tree.feature] is 0:
+            return self.traverse(self.tree.left(), X)
+
+        else:
+            return self.traverse(self.tree.right(),X)
+
+    def print(self):
+        left = None
+        right = None
+        # for i in range(0, self.tree.height()):
+        #     print("height = " + str(i), "Feature split =f"+ str(i), )
+
+
+
+
+
+# Node class for Decision Tree Model
+# left and right are the children of the node
+# Instead of having an isLeaft field, the result field will answer yes (1) or no (0)
+#   and be a -1 if the node is not a leaf
+# The feature is the index of the feature array, so the model is dependent on the input data being the same type
+# as the training data
+class Tree(object):
+    def __init__(self):
+        self.left = None
+        self.right = None
+        self.result = -1
+        self.feature = None
+
+    def left(self):
+        return self.left
+
+    def right(self):
+        return self.right
+
+    def height(self):
+        left_height = 0
+        right_height = 0
+
+        if self.left != None:
+            left_height = self.height(self.left)
+        if self.right != None:
+            right_height = self.height(self.right)
+        return max(left_height + 1 ,right_height + 1)
+
+
