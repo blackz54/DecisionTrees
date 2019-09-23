@@ -38,9 +38,9 @@ def DT_train_binary(X, Y, max_depth):
 def trim_data_sets(best_gain, feature_set, labelData):
     no = []
     yes = []
-    selector = [x for x in range(len(feature_set.transpose())) if x != best_gain]
-    data = feature_set[:, selector]
-    split_feature = feature_set[:, best_gain]
+    selector = [x for x in range(len(feature_set))if x != best_gain]
+    data = feature_set[selector, :]
+    split_feature = feature_set[best_gain, :]
     no = [list(labelData[i]) for i in range(0, len(split_feature)) if split_feature[i] == 0]
     yes = [list(labelData[i]) for i in range(0, len(split_feature)) if split_feature[i] == 1]
     return data, no, yes
