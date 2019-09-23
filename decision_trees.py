@@ -24,7 +24,7 @@ def DT_train_binary(X, Y, max_depth):
         X = X.transpose()
         info_vals = [computeInfoGain(X[i], Y) for i in range(0, len(X))]
         best_gain_index = np.argmax(info_vals)
-        print(info_vals)
+        # print(info_vals)
 
         # split on best gain index - remove the feature from the feature set
         # adjust the label set accordingly
@@ -171,14 +171,32 @@ def DT_test_binary(X, Y, DT):
         # print("start traversal")
         result = traverse(DT, X[i])
         # print("end traversal")
-        print("result: " + str(result) + "\n" + "Label: " + str(Y[i]))
+        # print("result: " + str(result) + "\n" + "Label: " + str(Y[i]))
         if result == Y[i]:
             total_correct = total_correct + 1
 
     accuracy = total_correct / total_tested
-    print("total correct: " + str(total_correct))
-    print("total tested: " + str(total_tested))
+    # print("total correct: " + str(total_correct))
+    # print("total tested: " + str(total_tested))
     return accuracy
+
+# @param X_train features of training data
+# @param Y_train labels of training data
+# @param X_val features of validation data
+# @param Y_val labels of validation data
+def DT_train_binary_best(X_train, Y_train, X_val, Y_val):
+    best_model = []
+    best_accuracy = 0
+    # Max depth is defined by the ammount of features in the data set
+    max_depth = len(X_train)
+    for i in range (0, max_depth):
+        model = DT_train_binary(X_train, Y_train, i)
+        accuracy = DT_test_binary(X_val, Y_val, model)
+        print(accuracy)
+        if accuracy > best_accuracy:
+            best_accuracy = accuracy
+            best_model = model
+    return best_model
 
 
 # Node class for Decision Tree Model
@@ -220,15 +238,15 @@ class Tree(object):
 def traverse(node, X):
     # print("Feature-split: " + str(node.feature))
     # print("Result: " + str(node.result))
-    print("Testing feature: " + str(node.feature))
-    print("Sample feature value: " + str(X[node.feature]))
+    # print("Testing feature: " + str(node.feature))
+    # print("Sample feature value: " + str(X[node.feature]))
     if node.result != -1:
         return node.result
 
     elif X[node.feature] == 0:
-        print("going left")
+        # print("going left")
         return traverse(node.left, X)
 
     else:
-        print("going right")
+        # print("going right")
         return traverse(node.right, X)
