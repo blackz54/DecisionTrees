@@ -21,7 +21,8 @@ def DT_train_binary(X, Y, max_depth):
         return root
 
     else:
-        info_vals = [computeInfoGain(X[:, i], Y) for i in range(0, len(X[0]))]
+        X = X.transpose()
+        info_vals = [computeInfoGain(X[i], Y) for i in range(0, len(X))]
         best_gain_index = np.argmax(info_vals)
         print(info_vals)
 
@@ -59,38 +60,68 @@ def entropy(Y):
 # @params Y a 2d array representing label data
 def computeInfoGain(X, Y):
     total_entropy = entropy(Y)
-    uniqueX, countsX = np.unique(X, return_counts=True)
-    uniqueY, countsY = np.unique(Y, return_counts=True)
-    zero_x = [0, 0]
-    one_x = [0, 0]
-    labelData = np.array(Y).flatten()
-    node_entropy = [(-countsX[i] / np.sum(countsX)) * np.log2(countsX[i] / np.sum(countsX)) for i in range(0, len(countsX))]
-    for i in range(0, len(labelData)):
-        if X[i] == 0:
-            if labelData[i] == 0:
-                zero_x[0] += 1
-            else:
-                zero_x[1] += 1
-        else:
-            if labelData[i] == 1:
-                one_x[0] += 1
-            else:
-                one_x[1] += 1
-    entropy_when_no = -(zero_x[0]/np.sum(zero_x)*np.log2(zero_x[0]/np.sum(zero_x)) + zero_x[1]/np.sum(zero_x)*np.log2(zero_x[1]/np.sum(zero_x)))
-    entropy_when_yes = -(one_x[0]/np.sum(one_x)*np.log2(one_x[0]/np.sum(one_x)) + one_x[1]/np.sum(one_x)*np.log2(one_x[1]/np.sum(one_x)))
-    labelno = [labelData[i] for i in range(0, len(X)) if X[i] == 0]
-    labelyes = [labelData[i] for i in range(0, len(X)) if X[i] == 1]
-    if len(labelno) == 0:
-        labelno = 0
-    if len(labelyes) == 0:
-        labelyes = 0
 
-#    if len(labelno) == 0:
-#        infoGain = total_entropy - (np.sum(labelyes) / np.sum(countsX)) * no_entropy[0]
-#    elif len(labelyes) == 0:
-#        infoGain = total_entropy - (np.sum(labelno) / np.sum(countsX)) * no_entropy[0]
-#    else:
-#        infoGain = total_entropy - ((np.sum(labelno) / np.sum(countsX)) * no_entropy[0] + (np.sum(labelyes) / np.sum(countsX)) * no_entropy[1])
+    # Storing label values (Yes/No) separately for sample set feature-yes and sample set feature-no
+    # no_x[0] is the ammount of times the label is no, when the feature is no
+    # no_x[1] is the ammount of times the label is yes, when the feature is yes
+    no_x = [0, 0]
+    yes_x = [0, 0]
+    for i in range(0, len(Y)):
+        if X[i] == 0:
+            if Y[i] == [0]:
+                no_x[0] += 1
+            else:
+                no_x[1] += 1
+        else:
+            if Y[i] == [1]:
+                yes_x[0] += 1
+            else:
+                yes_x[1] += 1
+
+    # Now we calculate entropy for each set
+
+    # Entropy when no
+    feature_no_label_no_prob = 0
+    feature_no_label_yes_prob = 0
+    entropy_when_no = 0
+
+    if np.sum(no_x) != 0:
+        feature_no_label_no_prob = no_x[0]/np.sum(no_x)
+        feature_no_label_yes_prob = no_x[1]/np.sum(no_x)
+    
+
+    # Check if either are zero. We decided in class that 0 * infinity = 0 to avoid log(0) issues
+    if feature_no_label_yes_prob == 0 and feature_no_label_no_prob == 0:
+        entropy_when_no = 0
+    elif feature_no_label_no_prob == 0:
+        entropy_when_no = -feature_no_label_yes_prob*np.log(feature_no_label_yes_prob)
+    elif feature_no_label_yes_prob == 0:
+        entropy_when_no = -feature_no_label_no_prob*np.log(feature_no_label_no_prob)
+    else:
+        entropy_when_no = -(feature_no_label_no_prob*np.log2(feature_no_label_no_prob) + feature_no_label_yes_prob*np.log2(feature_no_label_yes_prob))
+
+
+
+    # Entropy when yes
+    feature_yes_label_no_prob = 0
+    feature_yes_label_yes_prob = 0
+    entropy_when_yes = 0
+    if np.sum(yes_x) != 0:
+        feature_yes_label_no_prob = yes_x[0]/np.sum(yes_x)
+        feature_yes_label_yes_prob = yes_x[1]/np.sum(yes_x)
+
+    if feature_yes_label_yes_prob ==0 and feature_yes_label_no_prob == 0:
+        entropy_when_yes = 0
+    elif feature_yes_label_no_prob == 0:
+        entropy_when_yes = -feature_yes_label_yes_prob*np.log2(feature_yes_label_yes_prob)
+    elif feature_yes_label_yes_prob ==0:
+        entropy_when_yes = -feature_yes_label_no_prob*np.log2(feature_yes_label_no_prob)
+    else:
+        entropy_when_yes = -( (feature_yes_label_yes_prob*np.log2(feature_yes_label_yes_prob)) + (feature_yes_label_no_prob*np.log2(feature_yes_label_no_prob)) )
+
+    infoGain = total_entropy - ( ((np.sum(no_x)/len(Y))*entropy_when_no) + ((np.sum(yes_x)/len(Y))*entropy_when_yes) )
+
+
     return infoGain
 
 
