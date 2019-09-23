@@ -10,7 +10,6 @@ def DT_train_binary(X, Y, max_depth):
     guess = most_frequent(Y)
     if isUnambiguous(Y):
         root.result = guess
-        print(root.result)
         return root
 
     elif len(X) == 0:
@@ -22,8 +21,7 @@ def DT_train_binary(X, Y, max_depth):
         return root
 
     else:
-        X = X.transpose()
-        info_vals = [computeInfoGain(X[i], Y) for i in range(0, len(X))]
+        info_vals = [computeInfoGain(X[:, i], Y) for i in range(0, len(X[0]))]
         best_gain_index = np.argmax(info_vals)
         # print(info_vals)
 
@@ -39,9 +37,9 @@ def DT_train_binary(X, Y, max_depth):
 def trim_data_sets(best_gain, feature_set, labelData):
     no = []
     yes = []
-    selector = [x for x in range(len(feature_set))if x != best_gain]
-    data = feature_set[selector, :]
-    split_feature = feature_set[best_gain, :]
+    selector = [x for x in range(len(feature_set[0]))if x != best_gain]
+    data = feature_set[:, selector]
+    split_feature = feature_set[:, best_gain]
     no = [list(labelData[i]) for i in range(0, len(split_feature)) if split_feature[i] == 0]
     yes = [list(labelData[i]) for i in range(0, len(split_feature)) if split_feature[i] == 1]
     return data, no, yes
@@ -61,7 +59,6 @@ def entropy(Y):
 # @params Y a 2d array representing label data
 def computeInfoGain(X, Y):
     total_entropy = entropy(Y)
-
     # Storing label values (Yes/No) separately for sample set feature-yes and sample set feature-no
     # no_x[0] is the ammount of times the label is no, when the feature is no
     # no_x[1] is the ammount of times the label is yes, when the feature is yes
@@ -171,13 +168,13 @@ def DT_test_binary(X, Y, DT):
         # print("start traversal")
         result = traverse(DT, X[i])
         # print("end traversal")
-        # print("result: " + str(result) + "\n" + "Label: " + str(Y[i]))
+        print("result: " + str(result) + "\n" + "Label: " + str(Y[i]))
         if result == Y[i]:
             total_correct = total_correct + 1
 
     accuracy = total_correct / total_tested
-    # print("total correct: " + str(total_correct))
-    # print("total tested: " + str(total_tested))
+    print("total correct: " + str(total_correct))
+    print("total tested: " + str(total_tested))
     return accuracy
 
 # @param X_train features of training data
@@ -192,7 +189,6 @@ def DT_train_binary_best(X_train, Y_train, X_val, Y_val):
     for i in range (0, max_depth):
         model = DT_train_binary(X_train, Y_train, i)
         accuracy = DT_test_binary(X_val, Y_val, model)
-        print(accuracy)
         if accuracy > best_accuracy:
             best_accuracy = accuracy
             best_model = model
@@ -244,12 +240,11 @@ def traverse(node, X):
         return node.result
 
     elif X[node.feature] == 0:
-<<<<<<< HEAD
-        # print("going left")
-=======
->>>>>>> b95d76d471e74bc5f6ff2a51fe7f806cbc77abda
         return traverse(node.left, X)
 
     else:
         # print("going right")
         return traverse(node.right, X)
+
+def DT_make_prediction(x, DT):
+    res = 0

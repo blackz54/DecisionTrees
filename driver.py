@@ -60,8 +60,17 @@ sample_2 = np.array([[0, 1, 1, 1, 0, 0, 1]])
 sample_3 = np.array([[0, 0, 0, 1, 1, 0, 0]])
 
 first_five = [list(training_one[i]) for i in range(5)]
+label_first = [list(label_one) for i in range(5)]
 middle_five = [list(training_one[i]) for i in range(2, 7)]
+label_middle = [list(label_one) for i in range(2, 7)]
 last_five = [list(training_one[i]) for i in range(3, 8)]
+label_last = [list(label_one) for i in range(3, 8)]
 print(first_five)
 print(middle_five)
 print(last_five)
+
+first_tree = dt.DT_train_binary(first_five, label_first, 5)
+middle_tree = dt.DT_train_binary(middle_five, label_middle, 5)
+last_tree = dt.DT_train_binary(last_five, label_last, 5)
+
+
