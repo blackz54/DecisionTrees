@@ -10,6 +10,7 @@ def DT_train_binary(X, Y, max_depth):
     guess = most_frequent(Y)
     if isUnambiguous(Y):
         root.result = guess
+        print(root.result)
         return root
 
     elif len(X) == 0:
@@ -120,8 +121,6 @@ def computeInfoGain(X, Y):
         entropy_when_yes = -( (feature_yes_label_yes_prob*np.log2(feature_yes_label_yes_prob)) + (feature_yes_label_no_prob*np.log2(feature_yes_label_no_prob)) )
 
     infoGain = total_entropy - ( ((np.sum(no_x)/len(Y))*entropy_when_no) + ((np.sum(yes_x)/len(Y))*entropy_when_yes) )
-
-
     return infoGain
 
 
@@ -138,6 +137,7 @@ def most_frequent(Y):
         else:
             no += 1
     if yes > no:
+
         return 1
     else:
         return 0
@@ -244,7 +244,10 @@ def traverse(node, X):
         return node.result
 
     elif X[node.feature] == 0:
+<<<<<<< HEAD
         # print("going left")
+=======
+>>>>>>> b95d76d471e74bc5f6ff2a51fe7f806cbc77abda
         return traverse(node.left, X)
 
     else:
