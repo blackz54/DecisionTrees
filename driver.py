@@ -46,7 +46,9 @@ testing_set_two = np.array(
 testing_labels_two = np.array([[0], [1], [0], [0], [1], [0], [1], [1], [1]])
 
 # do stuff here
+newDT = dt.DT_train_binary_best(training_set_one, training_labels_one, validation_set_one, validation_labels_one)
 
+# end stuff here
 print("Question 4: ")
 training_one = np.array(
     [[1, 1, 1, 0, 1, 1, 0], [0, 0, 1, 1, 0, 1, 1], [0, 1, 0, 0, 1, 0, 0], [1, 1, 0, 1, 0, 0, 1], [1, 0, 1, 0, 1, 1, 1],
@@ -56,3 +58,10 @@ label_one = np.array([[1], [1], [0], [1], [0], [1], [1], [0]])
 sample_1 = np.array([[0, 1, 1, 1, 0, 1, 0]])
 sample_2 = np.array([[0, 1, 1, 1, 0, 0, 1]])
 sample_3 = np.array([[0, 0, 0, 1, 1, 0, 0]])
+
+first_five = [list(training_one[i]) for i in range(5)]
+middle_five = [list(training_one[i]) for i in range(2, 7)]
+last_five = [list(training_one[i]) for i in range(3, 8)]
+print(first_five)
+print(middle_five)
+print(last_five)
