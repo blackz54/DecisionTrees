@@ -220,12 +220,15 @@ class Tree(object):
 def traverse(node, X):
     # print("Feature-split: " + str(node.feature))
     # print("Result: " + str(node.result))
-
+    print("Testing feature: " + str(node.feature))
+    print("Sample feature value: " + str(X[node.feature]))
     if node.result != -1:
         return node.result
 
-    elif X[node.feature] is 0:
+    elif X[node.feature] == 0:
+        print("going left")
         return traverse(node.left, X)
 
     else:
+        print("going right")
         return traverse(node.right, X)
