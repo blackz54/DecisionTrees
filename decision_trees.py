@@ -1,10 +1,10 @@
 import numpy as np
 
 
-# @params X is test data
-# @params Y is label data
-# @params max_depth is an integer
-
+# Algorithm based on sudo code algorithm found on page 13 of the "A Course in Machine Learning" textbook
+# @params X The feature data in a numpy array (2D) [ [x,x,x,x], [x,x,x,x],..., [x,x,x,x]]
+# @params Y The label data in a numpy array (2D)   [ [y],       [y],     ,..., [y]]
+# @params max_depth An integer representing the maximum depth of the tree
 def DT_train_binary(X, Y, max_depth):
     root = Tree()
     guess = most_frequent(Y)
@@ -21,42 +21,74 @@ def DT_train_binary(X, Y, max_depth):
         return root
 
     else:
+        # Transposing X so we can iterate across the features
+        X = X.transpose()
+        # Using computeInfoGain, we generate a list of information gains for each feature
         info_vals = [computeInfoGain(X[:, i], Y) for i in range(0, len(X[0]))]
+        # Get the index of the best information gain in a list. Corresponds to the feature
         best_gain_index = np.argmax(info_vals)
         # print(info_vals)
-
-        # split on best gain index - remove the feature from the feature set
-        # adjust the label set accordingly
-        data, no, yes = trim_data_sets(best_gain_index, X, Y)
-        root.left = DT_train_binary(data, no, max_depth - 1)
-        root.right = DT_train_binary(data, yes, max_depth - 1)
+        # Split on the best feature
         root.feature = best_gain_index
+        # Using trim_data_sets we remove the feature information
+        data_no, data_yes, no, yes = trim_data_sets(best_gain_index, X, Y)
+        # After removal we continue to recurse down both sides of the tree
+        root.left = DT_train_binary(data_no, no, max_depth - 1)
+        root.right = DT_train_binary(data_yes, yes, max_depth - 1)
         return root
 
-
+# This function separates the data set for branching in DT_train_binary
+# @params best_gain The feature index the split is being processed for
+# @params feature_set The feature data in a numpy array
+# @params labelData The label data in a numpy array
+# @return data_no Feature data for no side of the split
+# @return data_yes Feature data for yes side of the split
+# @return no Label data for no side of the split
+# @return yes Label data for yes side of the split
 def trim_data_sets(best_gain, feature_set, labelData):
     no = []
     yes = []
-    selector = [x for x in range(len(feature_set[0]))if x != best_gain]
-    data = feature_set[:, selector]
-    split_feature = feature_set[:, best_gain]
-    no = [list(labelData[i]) for i in range(0, len(split_feature)) if split_feature[i] == 0]
-    yes = [list(labelData[i]) for i in range(0, len(split_feature)) if split_feature[i] == 1]
-    return data, no, yes
+
+    # Separate data where split feature is NO
+    data_no = np.array([feature_set[i] for i in range(0, len(feature_set)) if feature_set[i, best_gain] == 0])
+    data_no = data_no.transpose()
+    no = np.array([labelData[i] for i in range(0, len(labelData)) if data_no[i, best_gain] == 0])
+
+    # Separate data where split feature is YES
+    data_yes = np.array([feature_set[i] for i in range(0, len(feature_set)) if feature_set[i, best_gain] == 1])
+    data_yes = data_yes.transpose()
+    yes = np.array([labelData[i] for i in range(0, len(labelData)) if data_yes[i, best_gain] == 1])
+
+    # Now we have to take out the feature information we split on so it's no longer under consideration
+    non_split_indices = [x for x in range(len(feature_set))if x != best_gain]
+
+    data_no = data_no.transpose()
+    data_no = np.array([data_no[i] for i in non_split_indices])
+
+    data_yes = data_yes.transpose()
+    data_yes = np.array([data_yes[i] for i in non_split_indices])
+
+    # Transpose feature data back to being indexed by samples
+    data_no = data_no.transpose()
+    data_yes = data_yes.transpose()
+
+    return data_no, data_yes, no, yes
 
 
 # Calculate the entropy of the dataset
 # Found documentation for the unique function on Stack Overflow link below:
 # https://stackoverflow.com/questions/28663856/how-to-count-the-occurrence-of-certain-item-in-an-ndarray-in-python
+# @params Y The label data for entropy calculations
+# @return The entropy of the data as a scalar value
 def entropy(Y):
     unique, counts = np.unique(Y, return_counts=True)
     ent = np.sum([(-counts[i] / np.sum(counts)) * np.log2(counts[i] / np.sum(counts)) for i in range(0, len(counts))])
     return ent
 
 
-# This function computes the information gain of the feature
-# @params X a 2d dataset
-# @params Y a 2d array representing label data
+# This function computes the information gain for a split on a feature
+# @params X The feature data in a numpy array (2D) [ [x,x,x,x], [x,x,x,x],..., [x,x,x,x]]
+# @params Y The label data in a numpy array (2D)   [ [y],       [y],     ,..., [y]]
 def computeInfoGain(X, Y):
     total_entropy = entropy(Y)
     # Storing label values (Yes/No) separately for sample set feature-yes and sample set feature-no
