@@ -142,8 +142,8 @@ def computeInfoGain(X, Y):
                 entropy_when_no = -feature_no_label_no_prob * np.log(feature_no_label_no_prob)
             else:
                 entropy_when_no = -(
-                            feature_no_label_no_prob * np.log2(feature_no_label_no_prob) +
-                            feature_no_label_yes_prob * np.log2(feature_no_label_yes_prob))
+                        feature_no_label_no_prob * np.log2(feature_no_label_no_prob) +
+                        feature_no_label_yes_prob * np.log2(feature_no_label_yes_prob))
 
             # Entropy when yes
             feature_yes_label_no_prob = 0
@@ -162,11 +162,11 @@ def computeInfoGain(X, Y):
                 entropy_when_yes = -feature_yes_label_no_prob * np.log2(feature_yes_label_no_prob)
             else:
                 entropy_when_yes = -((feature_yes_label_yes_prob * np.log2(feature_yes_label_yes_prob)) + (
-                            feature_yes_label_no_prob * np.log2(feature_yes_label_no_prob)))
+                        feature_yes_label_no_prob * np.log2(feature_yes_label_no_prob)))
 
             splitEntropy = total_entropy - (
-                        ((np.sum(label_data[0]) / len(Y)) * entropy_when_no) +
-                        ((np.sum(label_data[1]) / len(Y)) * entropy_when_yes))
+                    ((np.sum(label_data[0]) / len(Y)) * entropy_when_no) +
+                    ((np.sum(label_data[1]) / len(Y)) * entropy_when_yes))
             infoGain.append(splitEntropy)
 
     # Due to python's weird object-reference, we make sure X gets transposed back
@@ -192,12 +192,6 @@ def most_frequent(Y):
         return 1
     else:
         return 0
-
-
-# This function will return a leaf node in the form of a list of lists
-# @params guess is the DT prediction
-def leaf(guess):
-    return [guess, [], []]
 
 
 # This function will test ambiguity of the data passed to it
@@ -239,7 +233,7 @@ def DT_test_binary(X, Y, DT):
 def DT_train_binary_best(X_train, Y_train, X_val, Y_val):
     best_model = []
     best_accuracy = 0
-    # Max depth is defined by the ammount of features in the data set
+    # Max depth is defined by the amount of features in the data set
     max_depth = len(X_train)
     for i in range(0, max_depth):
         model = DT_train_binary(X_train, Y_train, i)
@@ -253,7 +247,7 @@ def DT_train_binary_best(X_train, Y_train, X_val, Y_val):
 # Node class for Decision Tree Model
 # left and right are the children of the node
 # Instead of having an isLeaf field, the result field will answer yes (1) or no (0)
-#   and be a -1 if the node is not a leaf
+#           and be a -1 if the node is not a leaf
 # The feature is the index of the feature array, so the model is dependent on the input data being the same type
 # as the training data
 class Tree(object):
@@ -262,28 +256,6 @@ class Tree(object):
         self.right = None
         self.result = -1
         self.feature = None
-
-    def left(self):
-        return self.left
-
-    def right(self):
-        return self.right
-
-    def setleft(self, node):
-        self.left = node
-
-    def setright(self, node):
-        self.right = node
-
-    def height(self):
-        left_height = 0
-        right_height = 0
-
-        if self.left is not None:
-            left_height = self.height(self.left)
-        if self.right is not None:
-            right_height = self.height(self.right)
-        return max(left_height + 1, right_height + 1)
 
 
 def traverse(node, X):
