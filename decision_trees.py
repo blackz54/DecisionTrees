@@ -3,7 +3,6 @@ import numpy as np
 # Global to allow features to remain in data, but make sure we don't consider them again for a split
 split_features = []
 
-
 # Algorithm based on sudo code algorithm found on page 13 of the "A Course in Machine Learning" textbook
 # @params X The feature data in a numpy array (2D) [ [x,x,x,x], [x,x,x,x],..., [x,x,x,x]]
 # @params Y The label data in a numpy array (2D)   [ [y],       [y],     ,..., [y]]
@@ -40,7 +39,6 @@ def DT_train_binary(X, Y, max_depth):
         root.left = DT_train_binary(data_no, no, max_depth - 1)
         root.right = DT_train_binary(data_yes, yes, max_depth - 1)
         return root
-
 
 # This function separates the data set for branching in DT_train_binary
 # @params best_gain The feature index the split is being processed for
