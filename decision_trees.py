@@ -26,7 +26,7 @@ def DT_train_binary(X, Y, max_depth):
 
     else:
         # Using computeInfoGain, we generate a list of information gains for each feature
-        info_vals = [computeInfoGain(X, Y) for i in range(0, len(X))]
+        info_vals = computeInfoGain(X, Y)
         # Get the index of the best information gain in a list. Corresponds to the feature
         best_gain_index = np.argmax(info_vals)
         # Make sure we never split on this feature again
