@@ -3,6 +3,7 @@ import numpy as np
 # Global to allow features to remain in data, but make sure we don't consider them again for a split
 split_features = []
 
+
 # Algorithm based on sudo code algorithm found on page 13 of the "A Course in Machine Learning" textbook
 # @params X The feature data in a numpy array (2D) [ [x,x,x,x], [x,x,x,x],..., [x,x,x,x]]
 # @params Y The label data in a numpy array (2D)   [ [y],       [y],     ,..., [y]]
@@ -28,9 +29,9 @@ def DT_train_binary(X, Y, max_depth):
         info_vals = computeInfoGain(X, Y)
         # Get the index of the best information gain in a list. Corresponds to the feature
         best_gain_index = np.argmax(info_vals)
+
         # Make sure we never split on this feature again
         split_features.append(best_gain_index)
-        # print(info_vals)
         # Split on the best feature
         root.feature = best_gain_index
         # Using trim_data_sets we remove the feature information
@@ -39,6 +40,7 @@ def DT_train_binary(X, Y, max_depth):
         root.left = DT_train_binary(data_no, no, max_depth - 1)
         root.right = DT_train_binary(data_yes, yes, max_depth - 1)
         return root
+
 
 # This function separates the data set for branching in DT_train_binary
 # @params best_gain The feature index the split is being processed for
@@ -53,7 +55,7 @@ def trim_data_sets(best_gain, feature_set, labelData):
     data_yes = []
     no = []
     yes = []
-
+    feature_set = np.array(feature_set)
     # Separate labels for when features is no (0) or yes (1)
     for i in range(len(feature_set)):
         if feature_set[i, best_gain] == 0:
@@ -99,7 +101,7 @@ def computeInfoGain(X, Y):
     infoGain = []
 
     # Transposing X so we can iterate across the features
-    X = X.transpose()
+    X = np.array(X).transpose()
 
     for i in range(len(X)):
         if i in split_features:
@@ -239,6 +241,7 @@ def DT_train_binary_best(X_train, Y_train, X_val, Y_val):
         if accuracy > best_accuracy:
             best_accuracy = accuracy
             best_model = model
+    print(best_accuracy)
     return best_model
 
 
@@ -273,4 +276,5 @@ def traverse(node, X):
 
 
 def DT_make_prediction(x, DT):
-    res = 0
+    res = traverse(DT, x)
+    return res
