@@ -261,20 +261,29 @@ class Tree(object):
 
 def traverse(node, X):
     # print("Feature-split: " + str(node.feature))
-    # print("Sample feature value: " + str(X[node.feature]))
+    #print("Sample feature value: " + str(X[node.feature]))
     if node.result != -1:
         # print("result: ", node.result)
         return node.result
 
     elif X[node.feature] == 0:
-        # print("Going left")
+    #   print("Going left")
         return traverse(node.left, X)
 
     else:
-        # print("Going right")
+    #    print("Going right")
         return traverse(node.right, X)
 
 
 def DT_make_prediction(x, DT):
     res = traverse(DT, x)
     return res
+
+def DT_train_real(X, Y, max_depth):
+    X = transformRealData(X)
+    print(np.array(X))
+
+def transformRealData(X):
+    avgData = [np.sum(X[:, i])/len(X) for i in range(len(X[0]))]
+    X = [[0 if X[j, i] < avgData[i] else 1 for j in range(len(X))] for i in range(len(X[0]))]
+    return np.array(X).transpose()
