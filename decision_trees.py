@@ -1,22 +1,32 @@
 import numpy as np
-
-# Global to allow features to remain in data, but make sure we don't consider them again for a split
-split_features = []
+import copy as copy
 
 
+# Wrapper function for internal training function
 # Algorithm based on sudo code algorithm found on page 13 of the "A Course in Machine Learning" textbook
 # @params X The feature data in a numpy array (2D) [ [x,x,x,x], [x,x,x,x],..., [x,x,x,x]]
 # @params Y The label data in a numpy array (2D)   [ [y],       [y],     ,..., [y]]
 # @params max_depth An integer representing the maximum depth of the tree
 def DT_train_binary(X, Y, max_depth):
-    global split_features
-    root = Tree()
+    model_root = Tree()
+    model_root.split_features = []
+    getModel(X, Y, max_depth, model_root)
+    return model_root
+
+
+# Internal training function. We use this to set-up the node before being sent down the split, to ensure previously-
+#       split features are not considered
+# Algorithm based on sudo code algorithm found on page 13 of the "A Course in Machine Learning" textbook
+# @params X The feature data in a numpy array (2D) [ [x,x,x,x], [x,x,x,x],..., [x,x,x,x]]
+# @params Y The label data in a numpy array (2D)   [ [y],       [y],     ,..., [y]]
+# @params max_depth An integer representing the maximum depth of the tree
+def getModel(X, Y, max_depth, root):
     guess = most_frequent(Y)
     if isUnambiguous(Y):
         root.result = guess
         return root
 
-    elif len(X) == 0:
+    elif len(X) == len(root.split_features):
         root.result = guess
         return root
 
@@ -26,19 +36,46 @@ def DT_train_binary(X, Y, max_depth):
 
     else:
         # Using computeInfoGain, we generate a list of information gains for each feature
-        info_vals = computeInfoGain(X, Y)
+        info_vals = computeInfoGain(X, Y, root.split_features)
+
         # Get the index of the best information gain in a list. Corresponds to the feature
         best_gain_index = np.argmax(info_vals)
+
+        # Write-up specification requires we end if max information gain = 0
+        if info_vals[best_gain_index] == 0:
+            root.result = guess
+            return root
+
         # Make sure we never split on this feature again
-        split_features.append(best_gain_index)
+        root.split_features.append(best_gain_index)
+
+        # DEBUG print
         # print(info_vals)
+
         # Split on the best feature
         root.feature = best_gain_index
+
         # Using trim_data_sets we remove the feature information
         data_no, data_yes, no, yes = trim_data_sets(best_gain_index, X, Y)
+
         # After removal we continue to recurse down both sides of the tree
-        root.left = DT_train_binary(data_no, no, max_depth - 1)
-        root.right = DT_train_binary(data_yes, yes, max_depth - 1)
+
+        # Create children nodes
+        leftChild = Tree()
+        rightChild = Tree()
+
+        # Make sure each gets an independent copy of previously split features
+        leftChild.split_features = copy.deepcopy(root.split_features)
+        rightChild.split_features = copy.deepcopy(root.split_features)
+
+        # Continue algorithm along each branch
+        getModel(data_no, no, max_depth - 1, leftChild)
+        getModel(data_yes, yes, max_depth - 1, rightChild)
+
+        # Set children of root
+        root.left = leftChild
+        root.right = rightChild
+
         return root
 
 
@@ -92,10 +129,10 @@ def entropy(Y):
 # This function computes the information gain for all remaining splits
 # @params X The feature data in a numpy array (2D) [ [x,x,x,x], [x,x,x,x],..., [x,x,x,x]]
 # @params Y The label data in a numpy array (2D)   [ [y],       [y],     ,..., [y]]
+# @params previous_splits_indices A list of the indices of previous splits
 # @return infoGain A numpy array of the information gain for each feature split
 #                   For features that have already been considered, the information gain is reported as -1
-def computeInfoGain(X, Y):
-    global split_features
+def computeInfoGain(X, Y, previous_splits_indices):
     # Calculate total entropy of the set
     total_entropy = entropy(Y)
     infoGain = []
@@ -104,7 +141,7 @@ def computeInfoGain(X, Y):
     X = X.transpose()
 
     for i in range(len(X)):
-        if i in split_features:
+        if i in previous_splits_indices:
             infoGain.append(-1)
         else:
             # Storing label values (Yes/No) independently for feature_no and feature_yes
@@ -250,12 +287,15 @@ def DT_train_binary_best(X_train, Y_train, X_val, Y_val):
 #           and be a -1 if the node is not a leaf
 # The feature is the index of the feature array, so the model is dependent on the input data being the same type
 # as the training data
-class Tree(object):
+# Additionally, split_features is a list of previously split features
+class Tree:
+
     def __init__(self):
         self.left = None
         self.right = None
         self.result = -1
         self.feature = None
+        self.split_features = []
 
 
 def traverse(node, X):
