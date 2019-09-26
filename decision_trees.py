@@ -37,10 +37,11 @@ def getModel(X, Y, max_depth, root):
     else:
         # Using computeInfoGain, we generate a list of information gains for each feature
         info_vals = computeInfoGain(X, Y, root.split_features)
+        print(info_vals)
 
         # Get the index of the best information gain in a list. Corresponds to the feature
         best_gain_index = np.argmax(info_vals)
-
+        print(best_gain_index)
         # Write-up specification requires we end if max information gain = 0
         if info_vals[best_gain_index] == 0:
             root.result = guess
@@ -323,7 +324,12 @@ def DT_make_prediction(x, DT):
 
 def DT_train_real(X, Y, max_depth):
     X = transformRealData(X)
+    dt = DT_train_binary(X, Y, max_depth)
     print(np.array(X))
+    return dt
+
+def DT_test_real(X, Y, max_depth):
+    return DT_test_binary(X, Y, max_depth)
 
 def transformRealData(X):
     avgData = [np.sum(X[:, i])/len(X) for i in range(len(X[0]))]
