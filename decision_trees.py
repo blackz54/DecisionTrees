@@ -381,7 +381,7 @@ def DT_train_real_best(X_train, Y_train, X_val, Y_val):
     best_model = []
     best_accuracy = 0
     # Max depth is defined by the amount of features in the data set
-    max_depth = len(X_train)
+    max_depth = len(X_train[0])
     for i in range(0, max_depth):
         model = DT_train_real(X_train, Y_train, i)
         accuracy = DT_test_real(X_val, Y_val, model)
