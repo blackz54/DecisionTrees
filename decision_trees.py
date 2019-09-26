@@ -37,11 +37,11 @@ def getModel(X, Y, max_depth, root):
     else:
         # Using computeInfoGain, we generate a list of information gains for each feature
         info_vals = computeInfoGain(X, Y, root.split_features)
-        print(info_vals)
+        # print(info_vals)
 
         # Get the index of the best information gain in a list. Corresponds to the feature
         best_gain_index = np.argmax(info_vals)
-        print(best_gain_index)
+        # print(best_gain_index)
         # Write-up specification requires we end if max information gain = 0
         if info_vals[best_gain_index] == 0:
             root.result = guess
@@ -274,14 +274,14 @@ def DT_train_binary_best(X_train, Y_train, X_val, Y_val):
     best_model = []
     best_accuracy = 0
     # Max depth is defined by the amount of features in the data set
-    max_depth = len(X_train)
+    max_depth = len(X_train[0])
     for i in range(0, max_depth):
         model = DT_train_binary(X_train, Y_train, i)
         accuracy = DT_test_binary(X_val, Y_val, model)
         if accuracy > best_accuracy:
             best_accuracy = accuracy
             best_model = model
-    print(best_accuracy)
+    # print(best_accuracy)
     return best_model
 
 
@@ -319,20 +319,20 @@ def traverse(node, X):
         return traverse(node.right, X)
 
 def traverseReal(node, X, feature_avgs):
-    print("FEATURE AVERAGES: ", feature_avgs)
+    # print("FEATURE AVERAGES: ", feature_avgs)
     print("Feature-split: " + str(node.feature))
     print("Sample feature value: " + str(X[node.feature]))
     print("Feature Average: ", feature_avgs[node.feature])
     if node.result != -1:
-        # print("result: ", node.result)
+        print("result: ", node.result)
         return node.result
 
-    elif X[node.feature] <= feature_avgs[node.feature]:
-    #   print("Going left")
+    elif X[node.feature] < feature_avgs[node.feature]:
+        print("Going left")
         return traverseReal(node.left, X, feature_avgs)
 
     else:
-    #    print("Going right")
+        print("Going right")
         return traverseReal(node.right, X, feature_avgs)
 
 
@@ -353,6 +353,7 @@ def DT_test_real(X, Y, DT):
 def DT_test_real_helper(X, Y, DT):
     total_tested = np.size(Y)
     total_correct = 0
+    print(len(X))
 
     for i in range(0, total_tested):
         # print("start traversal")
@@ -387,5 +388,5 @@ def DT_train_real_best(X_train, Y_train, X_val, Y_val):
         if accuracy > best_accuracy:
             best_accuracy = accuracy
             best_model = model
-    print(best_accuracy)
+    # print(best_accuracy)
     return best_model
