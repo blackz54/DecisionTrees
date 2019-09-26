@@ -300,6 +300,7 @@ class Tree:
         self.result = -1
         self.feature = None
         self.split_features = []
+        self.average_features = []
 
 
 def traverse(node, X):
@@ -317,21 +318,74 @@ def traverse(node, X):
     #    print("Going right")
         return traverse(node.right, X)
 
+def traverseReal(node, X, feature_avgs):
+    print("FEATURE AVERAGES: ", feature_avgs)
+    print("Feature-split: " + str(node.feature))
+    print("Sample feature value: " + str(X[node.feature]))
+    print("Feature Average: ", feature_avgs[node.feature])
+    if node.result != -1:
+        # print("result: ", node.result)
+        return node.result
+
+    elif X[node.feature] <= feature_avgs[node.feature]:
+    #   print("Going left")
+        return traverseReal(node.left, X, feature_avgs)
+
+    else:
+    #    print("Going right")
+        return traverseReal(node.right, X, feature_avgs)
+
 
 def DT_make_prediction(x, DT):
     res = traverse(DT, x)
     return res
 
 def DT_train_real(X, Y, max_depth):
-    X = transformRealData(X)
+    X, avgs = transformRealData(X)
     dt = DT_train_binary(X, Y, max_depth)
+    dt.average_features = np.array(avgs)
     print(np.array(X))
     return dt
 
-def DT_test_real(X, Y, max_depth):
-    return DT_test_binary(X, Y, max_depth)
+def DT_test_real(X, Y, DT):
+    return DT_test_real_helper(X, Y, DT)
+
+def DT_test_real_helper(X, Y, DT):
+    total_tested = np.size(Y)
+    total_correct = 0
+
+    for i in range(0, total_tested):
+        # print("start traversal")
+        result = traverseReal(DT, X[i], DT.average_features)
+        # print("end traversal")
+        # print("result: " + str(result) + "\n" + "Label: " + str(Y[i]))
+        if result == Y[i]:
+            total_correct = total_correct + 1
+
+    accuracy = total_correct / total_tested
+    # print("total correct: " + str(total_correct))
+    # print("total tested: " + str(total_tested))
+    return accuracy
 
 def transformRealData(X):
     avgData = [np.sum(X[:, i])/len(X) for i in range(len(X[0]))]
     X = [[0 if X[j, i] < avgData[i] else 1 for j in range(len(X))] for i in range(len(X[0]))]
-    return np.array(X).transpose()
+    return np.array(X).transpose(), avgData
+
+# @param X_train features of training data
+# @param Y_train labels of training data
+# @param X_val features of validation data
+# @param Y_val labels of validation data
+def DT_train_real_best(X_train, Y_train, X_val, Y_val):
+    best_model = []
+    best_accuracy = 0
+    # Max depth is defined by the amount of features in the data set
+    max_depth = len(X_train)
+    for i in range(0, max_depth):
+        model = DT_train_real(X_train, Y_train, i)
+        accuracy = DT_test_real(X_val, Y_val, model)
+        if accuracy > best_accuracy:
+            best_accuracy = accuracy
+            best_model = model
+    print(best_accuracy)
+    return best_model
